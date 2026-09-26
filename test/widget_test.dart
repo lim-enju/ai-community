@@ -1,9 +1,4 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test for the AI discussion community app's main screen.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,20 +6,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ai_community/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Main screen renders boards, best posts and navigation', (WidgetTester tester) async {
+    await tester.pumpWidget(const AiCommunityApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Let the initial FutureBuilders (mock data, resolved immediately) settle.
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // App bar and above-the-fold content (best posts section).
+    expect(find.text('AI 토론 커뮤니티'), findsOneWidget);
+    expect(find.text('오늘의 베스트글'), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsOneWidget);
+    expect(find.byIcon(Icons.groups_outlined), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Scroll down to reach the per-board latest-posts section (with tabs),
+    // which sits below the fold in the default test viewport.
+    await tester.scrollUntilVisible(
+      find.text('게시판별 최신글'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('게시판별 최신글'), findsOneWidget);
+    expect(find.byType(TabBar), findsOneWidget);
   });
 }
