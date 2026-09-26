@@ -3,10 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../entities';
 import { IngestDto } from './dto/ingest.dto';
+import { DiscussionService } from '../ai-pipeline/discussion.service';
 
 @Injectable()
 export class InternalService {
-  constructor(@InjectRepository(Post) private readonly postRepo: Repository<Post>) {}
+  constructor(
+    @InjectRepository(Post) private readonly postRepo: Repository<Post>,
+    private readonly discussionService: DiscussionService,
+  ) {}
 
   /**
    * Stub: persists a Post from already-obtained source text/url. The actual
@@ -25,18 +29,19 @@ export class InternalService {
   }
 
   /**
-   * Stub trigger point: the AI content pipeline agent will implement the
-   * actual character comment generation logic behind this endpoint. For now
-   * it only validates the post exists and returns a not-implemented style ack.
+   * 주어진 게시글에 대해 ai-pipeline의 DiscussionService를 호출해
+   * 캐릭터별 라운드 토론(댓글)을 생성·저장한다. Claude API를 실제로 호출하므로
+   * 비용이 발생한다 (ANTHROPIC_API_KEY 필요).
    */
-  async generateComments(postId: string): Promise<{ postId: string; status: string }> {
+  async generateComments(
+    postId: string,
+  ): Promise<{ postId: string; status: string; commentCount: number }> {
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (!post) {
       throw new NotFoundException(`Post not found: ${postId}`);
     }
 
-    // TODO(ai-pipeline agent): generate Comment rows per round using Character
-    // personas and CharacterMemory, calling the Claude API. Not implemented here.
-    return { postId, status: 'not_implemented' };
+    const comments = await this.discussionService.generateDiscussionForPost(postId);
+    return { postId, status: 'generated', commentCount: comments.length };
   }
 }
