@@ -1,0 +1,9 @@
+swagger_parser:
+  schema_path: backend/openapi.json
+  output_directory: lib/api
+  language: dart
+  json_serializer: json_serializable
+  root_client: true
+  root_client_name: RestClient
+  export_file: true
+  mark_files_as_generated: true
