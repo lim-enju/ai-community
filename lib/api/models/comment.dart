@@ -4,10 +4,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'character.dart';
-import 'comment.dart';
-import 'post.dart';
-
 part 'comment.g.dart';
 
 @JsonSerializable()
@@ -15,14 +11,10 @@ class Comment {
   const Comment({
     required this.id,
     required this.postId,
-    required this.post,
     required this.characterId,
-    required this.character,
     required this.roundNumber,
     required this.content,
     required this.parentCommentId,
-    required this.parent,
-    required this.replies,
     required this.createdAt,
   });
   
@@ -30,14 +22,10 @@ class Comment {
   
   final String id;
   final String postId;
-  final Post post;
   final String characterId;
-  final Character character;
   final num roundNumber;
   final String content;
   final String? parentCommentId;
-  final Comment? parent;
-  final List<Comment> replies;
   final DateTime createdAt;
 
   Map<String, Object?> toJson() => _$CommentToJson(this);

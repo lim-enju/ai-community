@@ -8,6 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Board } from './board.entity';
 import { Comment } from './comment.entity';
 
@@ -19,6 +20,7 @@ export class Post {
   @Column({ name: 'board_id', type: 'uuid' })
   boardId: string;
 
+  @ApiHideProperty()
   @ManyToOne(() => Board, (board) => board.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'board_id' })
   board: Board;
@@ -39,6 +41,7 @@ export class Post {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @ApiHideProperty()
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
 

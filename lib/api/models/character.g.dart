@@ -16,12 +16,6 @@ Character _$CharacterFromJson(Map<String, dynamic> json) => Character(
   personality: json['personality'] as String,
   argumentPattern: json['argumentPattern'] as String,
   responseLengthGuide: json['responseLengthGuide'] as String,
-  comments: (json['comments'] as List<dynamic>)
-      .map((e) => Comment.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  memories: (json['memories'] as List<dynamic>)
-      .map((e) => CharacterMemory.fromJson(e as Map<String, dynamic>))
-      .toList(),
 );
 
 Map<String, dynamic> _$CharacterToJson(Character instance) => <String, dynamic>{
@@ -32,8 +26,6 @@ Map<String, dynamic> _$CharacterToJson(Character instance) => <String, dynamic>{
   'personality': instance.personality,
   'argumentPattern': instance.argumentPattern,
   'responseLengthGuide': instance.responseLengthGuide,
-  'comments': instance.comments,
-  'memories': instance.memories,
 };
 
 const _$CharacterArchetypeEnumMap = {

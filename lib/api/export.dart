@@ -12,10 +12,9 @@ export 'analytics/analytics_client.dart';
 export 'internal/internal_client.dart';
 // Data classes
 export 'models/board.dart';
-export 'models/character_memory.dart';
-export 'models/character.dart';
-export 'models/comment.dart';
 export 'models/post.dart';
+export 'models/comment.dart';
+export 'models/character.dart';
 export 'models/ingest_dto.dart';
 export 'models/agent_view_dto.dart';
 export 'models/character_archetype.dart';

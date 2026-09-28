@@ -11,9 +11,6 @@ Board _$BoardFromJson(Map<String, dynamic> json) => Board(
   name: json['name'] as String,
   slug: json['slug'] as String,
   description: json['description'] as String?,
-  posts: (json['posts'] as List<dynamic>)
-      .map((e) => Post.fromJson(e as Map<String, dynamic>))
-      .toList(),
 );
 
 Map<String, dynamic> _$BoardToJson(Board instance) => <String, dynamic>{
@@ -21,5 +18,4 @@ Map<String, dynamic> _$BoardToJson(Board instance) => <String, dynamic>{
   'name': instance.name,
   'slug': instance.slug,
   'description': instance.description,
-  'posts': instance.posts,
 };

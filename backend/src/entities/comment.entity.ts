@@ -8,6 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Post } from './post.entity';
 import { Character } from './character.entity';
 
@@ -19,6 +20,7 @@ export class Comment {
   @Column({ name: 'post_id', type: 'uuid' })
   postId: string;
 
+  @ApiHideProperty()
   @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post: Post;
@@ -26,6 +28,7 @@ export class Comment {
   @Column({ name: 'character_id', type: 'uuid' })
   characterId: string;
 
+  @ApiHideProperty()
   @ManyToOne(() => Character, (character) => character.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'character_id' })
   character: Character;
@@ -42,6 +45,7 @@ export class Comment {
   @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true })
   parentCommentId: string | null;
 
+  @ApiHideProperty()
   @ManyToOne(() => Comment, (comment) => comment.replies, {
     onDelete: 'CASCADE',
     nullable: true,
@@ -49,6 +53,7 @@ export class Comment {
   @JoinColumn({ name: 'parent_comment_id' })
   parent: Comment | null;
 
+  @ApiHideProperty()
   @OneToMany(() => Comment, (comment) => comment.parent)
   replies: Comment[];
 

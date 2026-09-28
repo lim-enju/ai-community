@@ -447,48 +447,94 @@
           "description": {
             "type": "string",
             "nullable": true
-          },
-          "posts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Post"
-            }
           }
         },
         "required": [
           "id",
           "name",
           "slug",
-          "description",
-          "posts"
+          "description"
         ]
       },
-      "CharacterMemory": {
+      "Post": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
+          "boardId": {
+            "type": "string"
+          },
+          "sourceText": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "viewCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "commentCount": {
+            "type": "number",
+            "description": "파생값(DB 컬럼 아님). 목록 조회 시 QueryBuilder의\nloadRelationCountAndMap으로 채워져 응답 JSON에 commentCount로 직렬화된다."
+          }
+        },
+        "required": [
+          "id",
+          "boardId",
+          "sourceText",
+          "sourceUrl",
+          "tags",
+          "viewCount",
+          "createdAt"
+        ]
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "postId": {
+            "type": "string"
+          },
           "characterId": {
             "type": "string"
           },
-          "character": {
-            "$ref": "#/components/schemas/Character"
+          "roundNumber": {
+            "type": "number"
           },
-          "summarizedStance": {
+          "content": {
             "type": "string"
           },
-          "updatedAt": {
+          "parentCommentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
             "format": "date-time",
             "type": "string"
           }
         },
         "required": [
           "id",
+          "postId",
           "characterId",
-          "character",
-          "summarizedStance",
-          "updatedAt"
+          "roundNumber",
+          "content",
+          "parentCommentId",
+          "createdAt"
         ]
       },
       "Character": {
@@ -531,18 +577,6 @@
           },
           "responseLengthGuide": {
             "type": "string"
-          },
-          "comments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Comment"
-            }
-          },
-          "memories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CharacterMemory"
-            }
           }
         },
         "required": [
@@ -552,125 +586,7 @@
           "speechExamples",
           "personality",
           "argumentPattern",
-          "responseLengthGuide",
-          "comments",
-          "memories"
-        ]
-      },
-      "Comment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "postId": {
-            "type": "string"
-          },
-          "post": {
-            "$ref": "#/components/schemas/Post"
-          },
-          "characterId": {
-            "type": "string"
-          },
-          "character": {
-            "$ref": "#/components/schemas/Character"
-          },
-          "roundNumber": {
-            "type": "number"
-          },
-          "content": {
-            "type": "string"
-          },
-          "parentCommentId": {
-            "type": "string",
-            "nullable": true
-          },
-          "parent": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Comment"
-              }
-            ]
-          },
-          "replies": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Comment"
-            }
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "postId",
-          "post",
-          "characterId",
-          "character",
-          "roundNumber",
-          "content",
-          "parentCommentId",
-          "parent",
-          "replies",
-          "createdAt"
-        ]
-      },
-      "Post": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "boardId": {
-            "type": "string"
-          },
-          "board": {
-            "$ref": "#/components/schemas/Board"
-          },
-          "sourceText": {
-            "type": "string"
-          },
-          "sourceUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "viewCount": {
-            "type": "number"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "comments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Comment"
-            }
-          },
-          "commentCount": {
-            "type": "number",
-            "description": "파생값(DB 컬럼 아님). 목록 조회 시 QueryBuilder의\nloadRelationCountAndMap으로 채워져 응답 JSON에 commentCount로 직렬화된다."
-          }
-        },
-        "required": [
-          "id",
-          "boardId",
-          "board",
-          "sourceText",
-          "sourceUrl",
-          "tags",
-          "viewCount",
-          "createdAt",
-          "comments"
+          "responseLengthGuide"
         ]
       },
       "IngestDto": {

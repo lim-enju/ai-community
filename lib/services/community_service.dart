@@ -1,3 +1,8 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+import '../api/models/character.dart' as api;
+import '../api/rest_client.dart';
 import '../mock/mock_data.dart';
 import '../models/agent_interaction.dart';
 import '../models/board.dart';
@@ -7,14 +12,20 @@ import '../models/interest_overview.dart';
 import '../models/post.dart';
 import '../models/post_interest.dart';
 import 'api_client.dart';
+import 'api_config.dart';
 
 /// Data-access layer for the app. Every method tries the real backend
 /// first and transparently falls back to mock data if the request fails
 /// (backend not deployed yet, network error, unexpected shape, etc).
 class CommunityService {
-  CommunityService({ApiClient? client}) : _client = client ?? ApiClient();
+  CommunityService({ApiClient? client, RestClient? rest})
+      : _client = client ?? ApiClient(),
+        _rest = rest ?? RestClient(Dio(BaseOptions(baseUrl: ApiConfig.baseUrl)));
 
   final ApiClient _client;
+
+  /// openapi.json에서 생성된 타입드 클라이언트(retrofit). 캐릭터 조회에 사용한다.
+  final RestClient _rest;
 
   Future<List<Board>> getBoards() async {
     try {
@@ -84,14 +95,25 @@ class CommunityService {
 
   Future<List<Character>> getCharacters() async {
     try {
-      final data = await _client.get('/characters');
-      final list = (data as List).map((e) => Character.fromJson(e)).toList();
+      // 생성된 retrofit 클라이언트로 호출·파싱 → 앱 모델로 매핑.
+      final list = await _rest.characters.charactersControllerFindAll();
       if (list.isEmpty) return MockData.characters;
-      return list;
+      return list.map(_characterFromApi).toList();
     } catch (_) {
       return MockData.characters;
     }
   }
+
+  /// 생성 모델(api.Character) → 앱 UI 모델(Character) 변환.
+  /// API엔 avatarColor가 없으므로 이름 해시로 안정적인 색을 만든다.
+  Character _characterFromApi(api.Character c) => Character(
+        id: c.id,
+        name: c.name,
+        archetype: c.archetype.json ?? '',
+        speechExamples: c.speechExamples,
+        personality: c.personality,
+        avatarColor: Color(0xFF000000 | (c.name.hashCode & 0x00FFFFFF)),
+      );
 
   Future<Character> getCharacter(String characterId) async {
     try {

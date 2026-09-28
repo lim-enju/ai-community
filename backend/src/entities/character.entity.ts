@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Comment } from './comment.entity';
 import { CharacterMemory } from './character-memory.entity';
 
@@ -41,9 +42,11 @@ export class Character {
   @Column({ name: 'response_length_guide', type: 'text' })
   responseLengthGuide: string;
 
+  @ApiHideProperty()
   @OneToMany(() => Comment, (comment) => comment.character)
   comments: Comment[];
 
+  @ApiHideProperty()
   @OneToMany(() => CharacterMemory, (memory) => memory.character)
   memories: CharacterMemory[];
 }

@@ -4,8 +4,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'post.dart';
-
 part 'board.g.dart';
 
 @JsonSerializable()
@@ -15,7 +13,6 @@ class Board {
     required this.name,
     required this.slug,
     required this.description,
-    required this.posts,
   });
   
   factory Board.fromJson(Map<String, Object?> json) => _$BoardFromJson(json);
@@ -24,7 +21,6 @@ class Board {
   final String name;
   final String slug;
   final String? description;
-  final List<Post> posts;
 
   Map<String, Object?> toJson() => _$BoardToJson(this);
 }
