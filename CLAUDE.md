@@ -64,6 +64,29 @@ bash scripts/regen-api.sh  # openapi 추출 → lib/api 모델·클라이언트 
 - 로직을 바꾸면 대응 테스트(`test/*.dart` 또는 eval 픽스처)를 함께 갱신하고 `flutter test` / `npm run eval`로 확인한다.
 - 커밋 메시지 끝에 `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 
+## 생성 패턴 (요청 한 줄 → 아래 모양으로 생성)
+
+반복 작업은 배경 설명 없이 한 줄만 받아도 이 프로젝트 표준 모양으로 만든다.
+
+**"○○ API 만들어줘" (새 리소스 CRUD)** — 컨트롤러는 위임만, 입력은 DTO 검증, 목록은 `{ items, total }`, 예외는 `HttpException`.
+```ts
+@Post(':postId/reports')
+report(@Param('postId') id: string, @Body() dto: CreateReportDto) {
+  return this.reportsService.create(id, dto); // 컨트롤러=위임, 로직은 service
+}
+class CreateReportDto { @IsString() reason: string; } // class-validator 검증
+// service가 Repository로 처리, 목록 메서드는 { items, total } 반환
+```
+
+**"○○ 화면 만들어줘" (Flutter)** — `AsyncView`로 감싸고, `CommunityService`로 조회, 실패 시 MockData 폴백.
+```dart
+late final Future<List<T>> _future = _service.getX();
+// build: AsyncView<List<T>>(future: _future, isEmpty: (d) => d.isEmpty, builder: ...)
+// _service.getX()는 try/catch로 실패 시 MockData 폴백
+```
+
+**"○○ 캐릭터 추가해줘"** — 위 `## 규칙`의 "캐릭터 3파일 함께 수정"대로 `character.entity.ts`·`characters.data.ts`·`typeorm-data-port.ts`를 한 번에.
+
 ## 금지 (하드 룰 — 어떤 상황에도 재현 금지)
 
 이 프로젝트의 목적은 **담론 유형 분석**이지 혐오 표현 재현이 아니다. 게시글·캐릭터·댓글 어디에도:
