@@ -96,13 +96,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   children: post.tags.map((t) => TagChip(label: t)).toList(),
                 ),
               ],
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Text(post.body, style: const TextStyle(fontSize: 15, height: 1.5)),
+              if (post.body.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(post.body, style: const TextStyle(fontSize: 15, height: 1.5)),
+                  ),
                 ),
-              ),
+              ],
               if (post.sourceUrl != null) ...[
                 const SizedBox(height: 8),
                 Row(

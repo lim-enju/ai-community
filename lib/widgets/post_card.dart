@@ -46,13 +46,15 @@ class PostCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
-              const SizedBox(height: 6),
-              Text(
-                post.body,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
+              if (post.body.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  post.body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ],
               if (post.tags.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(
