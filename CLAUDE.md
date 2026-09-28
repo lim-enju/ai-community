@@ -34,6 +34,9 @@ npm run token-report       # 프롬프트 토큰 baseline 추정 ($0)
 flutter build web          # lib/ 수정 후 필수 재빌드
 cd build/web && python3 -m http.server 8080   # 정적 서빙
 flutter test               # 위젯/서비스 테스트
+
+# 백엔드 API 변경 후 Flutter 타입드 클라이언트 재생성 (Postgres 켠 상태)
+bash scripts/regen-api.sh  # openapi 추출 → lib/api 모델·클라이언트 생성 → build_runner
 ```
 
 ## 규칙
