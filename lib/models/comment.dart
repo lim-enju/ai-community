@@ -6,6 +6,10 @@ class Comment {
   final String content;
   final DateTime createdAt;
 
+  /// Id of the parent comment when this is a reply (대댓글). `null` for a
+  /// top-level comment.
+  final String? parentCommentId;
+
   const Comment({
     required this.id,
     required this.postId,
@@ -13,7 +17,10 @@ class Comment {
     required this.roundNumber,
     required this.content,
     required this.createdAt,
+    this.parentCommentId,
   });
+
+  bool get isReply => parentCommentId != null;
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
@@ -23,6 +30,7 @@ class Comment {
       roundNumber: (json['roundNumber'] as num?)?.toInt() ?? 1,
       content: json['content'] as String? ?? '',
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      parentCommentId: json['parentCommentId']?.toString(),
     );
   }
 }

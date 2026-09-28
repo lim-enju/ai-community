@@ -8,6 +8,8 @@ import { CharactersModule } from './characters/characters.module';
 import { SearchModule } from './search/search.module';
 import { InternalModule } from './internal/internal.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { InterestsModule } from './interests/interests.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     PostsModule,
     CharactersModule,
     SearchModule,
+    InterestsModule,
+    AnalyticsModule,
     InternalModule,
     // 콘텐츠 자동 생성 사이클 (ENABLE_CONTENT_SCHEDULER=true 일 때만 동작).
     // AiPipelineModule은 InternalModule/SchedulerModule에서 import되어 연결된다.

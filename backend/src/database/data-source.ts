@@ -1,7 +1,14 @@
 import 'reflect-metadata';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
-import { Board, Post, Character, Comment, CharacterMemory } from '../entities';
+import {
+  Board,
+  Post,
+  Character,
+  Comment,
+  CharacterMemory,
+  CharacterPostInterest,
+} from '../entities';
 
 dotenv.config();
 
@@ -12,7 +19,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'ai_community',
-  entities: [Board, Post, Character, Comment, CharacterMemory],
+  entities: [Board, Post, Character, Comment, CharacterMemory, CharacterPostInterest],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   synchronize: false,
   logging: process.env.DB_LOGGING === 'true',

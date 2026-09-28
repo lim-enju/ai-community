@@ -11,7 +11,12 @@ export class PostsService {
   ) {}
 
   async findOne(postId: string): Promise<Post> {
-    const post = await this.postRepo.findOne({ where: { id: postId }, relations: ['board'] });
+    const post = await this.postRepo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.board', 'board')
+      .loadRelationCountAndMap('post.commentCount', 'post.comments')
+      .where('post.id = :postId', { postId })
+      .getOne();
     if (!post) {
       throw new NotFoundException(`Post not found: ${postId}`);
     }

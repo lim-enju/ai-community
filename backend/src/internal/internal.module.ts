@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Post, Comment } from '../entities';
+import { Post, Comment, CharacterPostInterest } from '../entities';
 import { InternalController } from './internal.controller';
 import { InternalService } from './internal.service';
 import { AiPipelineModule } from '../ai-pipeline/ai-pipeline.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Comment]), AiPipelineModule],
+  imports: [
+    TypeOrmModule.forFeature([Post, Comment, CharacterPostInterest]),
+    AiPipelineModule,
+  ],
   controllers: [InternalController],
   providers: [InternalService],
 })

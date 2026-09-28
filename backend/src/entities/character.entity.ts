@@ -11,6 +11,11 @@ export enum CharacterArchetype {
   MORAL_PREACHER = '당위 설교자',
   DOOM_AGITATOR = '비관 선동형',
   BANDWAGON_RIDER = '분위기 편승형',
+  // 실제 커뮤니티 댓글 패턴을 분석해 추가한 확장 로스터 A (순화된 톤, 실명 없음)
+  CONDITION_CALCULATOR = '조건 계산기',
+  AUTHENTICITY_DOUBTER = '진위 의심러',
+  APPEARANCE_REDUCER = '외모 환원러',
+  POST_INTENT_QUESTIONER = '작성 의도 추궁러',
 }
 
 @Entity('characters')

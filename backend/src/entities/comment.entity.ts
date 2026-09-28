@@ -5,6 +5,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Post } from './post.entity';
@@ -35,6 +36,21 @@ export class Comment {
 
   @Column({ type: 'text' })
   content: string;
+
+  // 대댓글: 다른 댓글에 달린 답글이면 그 부모 댓글 id. 최상위 댓글이면 null.
+  @Index()
+  @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true })
+  parentCommentId: string | null;
+
+  @ManyToOne(() => Comment, (comment) => comment.replies, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parent_comment_id' })
+  parent: Comment | null;
+
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  replies: Comment[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

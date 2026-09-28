@@ -69,7 +69,16 @@ export class ContentCycleService implements OnApplicationBootstrap, OnModuleDest
   }
 
   async runCycle(): Promise<void> {
+    // 사연 게시(ingest)는 API 비용이 없으므로 항상 수행한다.
     await this.ingestNextSampleStory();
+
+    // 댓글 생성은 Claude API 호출(=비용)이 필요하다. 키가 없으면 조용히 건너뛴다.
+    if (!process.env.ANTHROPIC_API_KEY) {
+      this.logger.log(
+        'ANTHROPIC_API_KEY가 없어 캐릭터 토론 생성은 건너뜁니다. 키를 넣으면 자동으로 생성됩니다. (게시글 등록은 계속 동작)',
+      );
+      return;
+    }
     await this.generateForOnePendingPost();
   }
 

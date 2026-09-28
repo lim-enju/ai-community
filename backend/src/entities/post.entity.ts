@@ -41,4 +41,10 @@ export class Post {
 
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
+
+  /**
+   * 파생값(DB 컬럼 아님). 목록 조회 시 QueryBuilder의
+   * loadRelationCountAndMap으로 채워져 응답 JSON에 commentCount로 직렬화된다.
+   */
+  commentCount?: number;
 }

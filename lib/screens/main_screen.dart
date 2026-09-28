@@ -6,6 +6,7 @@ import '../services/community_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/async_view.dart';
 import '../widgets/post_card.dart';
+import 'analytics_screen.dart';
 import 'board_list_screen.dart';
 import 'character_list_screen.dart';
 import 'search_screen.dart';
@@ -19,7 +20,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   late final CommunityService _service = widget.service ?? CommunityService();
   late Future<List<Board>> _boardsFuture;
   late Future<List<Post>> _bestFuture;
@@ -32,9 +33,12 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     _bestFuture = _service.getBestPosts();
     _boardsFuture.then((boards) {
       if (!mounted) return;
+      // build()와 동일하게 '베스트'(집계용 가상 게시판)를 제외한 개수로 맞춰,
+      // 컨트롤러가 불필요하게 재생성되지 않도록 한다.
+      final tabCount = boards.where((b) => b.slug != 'best').length;
       setState(() {
         _tabController?.dispose();
-        _tabController = TabController(length: boards.length, vsync: this);
+        _tabController = TabController(length: tabCount, vsync: this);
       });
     });
   }
@@ -61,6 +65,13 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             icon: const Icon(Icons.groups_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CharacterListScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.insights_outlined),
+            tooltip: '에이전트 분석',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
             ),
           ),
         ],
@@ -98,9 +109,12 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
               future: _boardsFuture,
               isEmpty: (data) => data.isEmpty,
               builder: (context, boards) {
-                if (_tabController == null || _tabController!.length != boards.length) {
+                // '베스트'는 실제 글이 없는 집계용 가상 게시판이라(상단 '오늘의 베스트글' 섹션에서 이미 노출)
+                // 게시판별 최신글 탭에서는 제외한다. 그렇지 않으면 첫 탭이 비어 보인다.
+                final tabBoards = boards.where((b) => b.slug != 'best').toList();
+                if (_tabController == null || _tabController!.length != tabBoards.length) {
                   _tabController?.dispose();
-                  _tabController = TabController(length: boards.length, vsync: this);
+                  _tabController = TabController(length: tabBoards.length, vsync: this);
                 }
                 return Column(
                   children: [
@@ -110,13 +124,13 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                       labelColor: AppColors.navy,
                       unselectedLabelColor: AppColors.textSecondary,
                       indicatorColor: AppColors.accent,
-                      tabs: boards.map((b) => Tab(text: b.name)).toList(),
+                      tabs: tabBoards.map((b) => Tab(text: b.name)).toList(),
                     ),
                     SizedBox(
                       height: 360,
                       child: TabBarView(
                         controller: _tabController,
-                        children: boards
+                        children: tabBoards
                             .map((board) => _BoardPreview(service: _service, board: board))
                             .toList(),
                       ),

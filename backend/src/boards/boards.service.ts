@@ -17,7 +17,12 @@ export class BoardsService {
   }
 
   async findBySlugOrId(boardId: string): Promise<Board> {
-    const board = await this.boardRepo.findOne({ where: [{ id: boardId }, { slug: boardId }] });
+    // `id`는 uuid 컬럼이라, 슬러그처럼 uuid가 아닌 문자열을 id 조건에 넣으면
+    // Postgres가 "invalid input syntax for type uuid" 로 쿼리를 던진다.
+    // 따라서 입력이 uuid 형식일 때만 id로도 조회하고, 아니면 slug로만 조회한다.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(boardId);
+    const where = isUuid ? [{ id: boardId }, { slug: boardId }] : [{ slug: boardId }];
+    const board = await this.boardRepo.findOne({ where });
     if (!board) {
       throw new NotFoundException(`Board not found: ${boardId}`);
     }
@@ -32,7 +37,11 @@ export class BoardsService {
   ): Promise<{ items: Post[]; total: number; page: number; limit: number }> {
     const board = await this.findBySlugOrId(boardId);
 
-    const qb = this.postRepo.createQueryBuilder('post').where('post.board_id = :boardId', { boardId: board.id });
+    const qb = this.postRepo
+      .createQueryBuilder('post')
+      .where('post.board_id = :boardId', { boardId: board.id })
+      // 각 글의 댓글 수를 post.commentCount 파생 속성으로 매핑해 응답에 포함시킨다.
+      .loadRelationCountAndMap('post.commentCount', 'post.comments');
 
     if (sort === 'popular') {
       qb.orderBy('post.viewCount', 'DESC');
@@ -50,6 +59,12 @@ export class BoardsService {
    * "베스트" board: cross-board listing of the most-viewed posts.
    */
   async findBestPosts(limit = 20): Promise<Post[]> {
-    return this.postRepo.find({ order: { viewCount: 'DESC' }, take: limit, relations: ['board'] });
+    return this.postRepo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.board', 'board')
+      .loadRelationCountAndMap('post.commentCount', 'post.comments')
+      .orderBy('post.viewCount', 'DESC')
+      .take(limit)
+      .getMany();
   }
 }

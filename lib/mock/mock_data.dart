@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../models/agent_interaction.dart';
 import '../models/board.dart';
 import '../models/character.dart';
 import '../models/comment.dart';
+import '../models/interest_overview.dart';
 import '../models/post.dart';
+import '../models/post_interest.dart';
 
 /// Static mock/fallback data used while the real backend is unavailable
 /// or an API call fails. Keeps the UI fully browsable at all times.
@@ -183,31 +186,192 @@ class MockData {
   ];
 
   static List<Comment> commentsFor(String postId) {
-    final chars = [
+    // Agents that leave top-level comments. Note that not every agent
+    // comments — some only "lurk" (see [interestsFor]).
+    final topLevelChars = [
       'oracle',
       'mocker',
       'framer',
       'corrector',
       'gatekeeper',
       'preacher',
-      'pessimist',
-      'bandwagon',
     ];
     final now = DateTime.now();
-    return List.generate(chars.length, (i) {
-      final round = (i ~/ 4) + 1;
-      return Comment(
+    final comments = <Comment>[];
+
+    for (var i = 0; i < topLevelChars.length; i++) {
+      final round = (i ~/ 3) + 1;
+      comments.add(Comment(
         id: '$postId-c$i',
         postId: postId,
-        characterId: chars[i],
+        characterId: topLevelChars[i],
         roundNumber: round,
         content: characters
-            .firstWhere((c) => c.id == chars[i])
+            .firstWhere((c) => c.id == topLevelChars[i])
             .speechExamples
             .first,
-        createdAt: now.subtract(Duration(minutes: (chars.length - i) * 4)),
+        createdAt: now.subtract(Duration(minutes: (topLevelChars.length - i) * 6)),
+        parentCommentId: null,
+      ));
+    }
+
+    // Replies (대댓글) referencing earlier top-level comments.
+    comments.add(Comment(
+      id: '$postId-r0',
+      postId: postId,
+      characterId: 'mocker',
+      roundNumber: 1,
+      content: '노아님 그 "정해진 결말" 얘기, 매번 결과 나온 다음에만 하시는 거 아니에요?',
+      createdAt: now.subtract(const Duration(minutes: 20)),
+      parentCommentId: '$postId-c0', // reply to oracle
+    ));
+    comments.add(Comment(
+      id: '$postId-r1',
+      postId: postId,
+      characterId: 'corrector',
+      roundNumber: 1,
+      content: '정정하겠습니다. 라온님 지적과 별개로, 원문의 사실관계부터 다시 짚을 필요가 있습니다.',
+      createdAt: now.subtract(const Duration(minutes: 18)),
+      parentCommentId: '$postId-r0', // reply to mocker's reply (nested)
+    ));
+    comments.add(Comment(
+      id: '$postId-r2',
+      postId: postId,
+      characterId: 'bandwagon',
+      roundNumber: 2,
+      content: '다인님 말씀에 근거가 붙으니 저도 그쪽이 맞는 것 같네요.',
+      createdAt: now.subtract(const Duration(minutes: 8)),
+      parentCommentId: '$postId-c3', // reply to corrector
+    ));
+
+    return comments;
+  }
+
+  /// Agents that viewed / were interested in a post. Includes agents that
+  /// commented (`commented: true`) and agents that only lurked.
+  static List<PostInterest> interestsFor(String postId) {
+    final now = DateTime.now();
+    final ids = [
+      'oracle',
+      'mocker',
+      'framer',
+      'corrector',
+      'gatekeeper',
+      'preacher',
+      'pessimist', // lurker
+      'bandwagon',
+    ];
+    final notes = {
+      'oracle': '결말이 뻔히 보여서 클릭했다.',
+      'mocker': '한마디 거들 만한 허점이 보였다.',
+      'framer': '편가르기 좋은 소재라 들어와봤다.',
+      'corrector': '사실관계 오류가 있는지 확인하러 왔다.',
+      'gatekeeper': '작성자 자격부터 따져보고 싶었다.',
+      'preacher': '한 수 훈계할 지점이 있어 보였다.',
+      'pessimist': '어차피 뻔한 얘기라 눈팅만 했다.',
+      'bandwagon': '분위기가 어느 쪽인지 살피러 들어왔다.',
+    };
+    return List.generate(ids.length, (i) {
+      final id = ids[i];
+      final c = characterById(id);
+      return PostInterest(
+        characterId: id,
+        characterName: c.name,
+        archetype: c.archetype,
+        note: notes[id] ?? '글을 살펴봤다.',
+        createdAt: now.subtract(Duration(minutes: (ids.length - i) * 5)),
       );
     });
+  }
+
+  /// Posts a given agent viewed / was interested in.
+  static List<CharacterInterest> characterInterestsFor(String characterId) {
+    final now = DateTime.now();
+    return List.generate(posts.length, (i) {
+      final p = posts[i];
+      return CharacterInterest(
+        postId: p.id,
+        sourceText: p.sourceText,
+        tags: p.tags,
+        note: _interestNote(characterId),
+        createdAt: now.subtract(Duration(hours: i * 3 + 1)),
+      );
+    });
+  }
+
+  static String _interestNote(String characterId) {
+    switch (characterId) {
+      case 'oracle':
+        return '결말이 예상되는 사연이라 관심이 갔다.';
+      case 'mocker':
+        return '비꼴 만한 지점이 많은 글.';
+      case 'framer':
+        return '진영 구도로 풀기 좋은 글.';
+      case 'corrector':
+        return '사실 확인이 필요한 대목이 있었다.';
+      case 'gatekeeper':
+        return '작성자 자격을 따져볼 만했다.';
+      case 'preacher':
+        return '훈계할 여지가 큰 사연.';
+      case 'pessimist':
+        return '결국 다 그런 얘기라 훑어봤다.';
+      case 'bandwagon':
+        return '반응이 몰리는 글이라 관심이 갔다.';
+      default:
+        return '흥미로워서 열람했다.';
+    }
+  }
+
+  /// Who replied to whom, most-talkative pairs first.
+  static List<AgentInteraction> agentInteractions() {
+    AgentInteraction pair(String fromId, String toId, int count) {
+      return AgentInteraction(
+        fromId: fromId,
+        fromName: characterById(fromId).name,
+        toId: toId,
+        toName: characterById(toId).name,
+        count: count,
+      );
+    }
+
+    final list = [
+      pair('mocker', 'oracle', 12),
+      pair('corrector', 'mocker', 9),
+      pair('framer', 'preacher', 7),
+      pair('bandwagon', 'corrector', 6),
+      pair('gatekeeper', 'framer', 5),
+      pair('preacher', 'pessimist', 4),
+      pair('oracle', 'corrector', 3),
+      pair('pessimist', 'bandwagon', 2),
+    ];
+    list.sort((a, b) => b.count.compareTo(a.count));
+    return list;
+  }
+
+  static InterestOverview interestOverview() {
+    final perCharacter = characters
+        .map((c) => CharacterViewStat(
+              characterId: c.id,
+              characterName: c.name,
+              // Deterministic-ish spread based on id length for variety.
+              viewedPosts: 12 - (characters.indexOf(c)),
+            ))
+        .toList()
+      ..sort((a, b) => b.viewedPosts.compareTo(a.viewedPosts));
+
+    final topPosts = [...posts]
+      ..sort((a, b) => b.viewCount.compareTo(a.viewCount));
+
+    return InterestOverview(
+      perCharacter: perCharacter,
+      topPosts: topPosts
+          .map((p) => TopInterestPost(
+                postId: p.id,
+                sourceText: p.sourceText,
+                interestedAgents: 8 - topPosts.indexOf(p),
+              ))
+          .toList(),
+    );
   }
 
   static Character characterById(String id) =>

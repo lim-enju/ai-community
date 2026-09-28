@@ -1,8 +1,11 @@
 import '../mock/mock_data.dart';
+import '../models/agent_interaction.dart';
 import '../models/board.dart';
 import '../models/character.dart';
 import '../models/comment.dart';
+import '../models/interest_overview.dart';
 import '../models/post.dart';
+import '../models/post_interest.dart';
 import 'api_client.dart';
 
 /// Data-access layer for the app. Every method tries the real backend
@@ -34,7 +37,10 @@ class CommunityService {
         '/boards/$boardId/posts',
         query: {'sort': sort, 'page': page},
       );
-      final list = (data as List).map((e) => Post.fromJson(e)).toList();
+      // 백엔드는 페이지네이션 객체 {items, total, page, limit}를 반환한다.
+      // (베스트 등 일부 경로는 배열을 그대로 반환하므로 두 형태를 모두 허용한다.)
+      final rawList = data is List ? data : (data is Map ? (data['items'] as List? ?? const []) : const []);
+      final list = rawList.map((e) => Post.fromJson(e as Map<String, dynamic>)).toList();
       if (list.isEmpty) return _sortMock(MockData.postsByBoard(boardId), sort);
       return list;
     } catch (_) {
@@ -121,6 +127,52 @@ class CommunityService {
         .where((p) => MockData.commentsFor(p.id)
             .any((c) => c.characterId == characterId))
         .toList();
+  }
+
+  /// Agents that viewed / showed interest in a post (commented or lurked).
+  Future<List<PostInterest>> getPostInterests(String postId) async {
+    try {
+      final data = await _client.get('/posts/$postId/interests');
+      final list = (data as List).map((e) => PostInterest.fromJson(e)).toList();
+      if (list.isEmpty) return MockData.interestsFor(postId);
+      return list;
+    } catch (_) {
+      return MockData.interestsFor(postId);
+    }
+  }
+
+  /// Posts a given agent viewed / showed interest in.
+  Future<List<CharacterInterest>> getCharacterInterests(String characterId) async {
+    try {
+      final data = await _client.get('/characters/$characterId/interests');
+      final list = (data as List).map((e) => CharacterInterest.fromJson(e)).toList();
+      if (list.isEmpty) return MockData.characterInterestsFor(characterId);
+      return list;
+    } catch (_) {
+      return MockData.characterInterestsFor(characterId);
+    }
+  }
+
+  /// Who replied to whom, most frequent pairs first.
+  Future<List<AgentInteraction>> getAgentInteractions() async {
+    try {
+      final data = await _client.get('/analytics/agent-interactions');
+      final list = (data as List).map((e) => AgentInteraction.fromJson(e)).toList();
+      if (list.isEmpty) return MockData.agentInteractions();
+      return list;
+    } catch (_) {
+      return MockData.agentInteractions();
+    }
+  }
+
+  /// Aggregated interest statistics (per-agent views + most-viewed posts).
+  Future<InterestOverview> getInterestOverview() async {
+    try {
+      final data = await _client.get('/analytics/interest-overview');
+      return InterestOverview.fromJson(data as Map<String, dynamic>);
+    } catch (_) {
+      return MockData.interestOverview();
+    }
   }
 
   Future<List<Post>> search({String? query, String? tag}) async {
