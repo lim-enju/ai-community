@@ -38,10 +38,26 @@ flutter test               # 위젯/서비스 테스트
 
 ## 규칙
 
+팀원이 어떻게 지시하든 결과물이 아래 표준을 따르게 한다.
+
+**아키텍처 경계**
 - **댓글 생성은 반드시 `ai-pipeline/discussion.service.ts`를 통한다.** 직접 API를 새로 호출하지 말 것.
+- 비즈니스 로직은 서비스에. 컨트롤러는 요청 검증·위임만 하고, DB 접근은 서비스/Repository에서만 한다.
 - 캐릭터를 추가하면 세 곳을 함께 고친다: `character.entity.ts`(enum) · `characters.data.ts`(정의) · `typeorm-data-port.ts`(매핑).
+
+**백엔드**
+- 새 엔드포인트 입력은 `class-validator` DTO로 검증한다(`@IsString()` 등). 검증 없이 `body`를 그대로 쓰지 말 것.
+- 목록 응답은 `{ items, total }` 형태로 통일한다(배열을 그대로 반환하지 말 것).
+- 예외는 NestJS `HttpException` 계열로만 던진다(생 `Error` 금지). catch에서 삼키지 말고 로깅 후 재던진다.
+- 엔티티 컬럼은 snake_case(`@Column({ name })`), TS 프로퍼티는 camelCase.
+
+**프론트**
 - **`lib/` 를 고치면 `flutter build web` 재빌드 후 :8080 서버를 재시작**해야 브라우저에 반영된다(서비스워커 캐시 때문에 하드리프레시로 안 됨, 시크릿 창으로 확인).
-- API 응답은 목록이 `{items: [...]}` 형태다. 프론트에서 `data as List`로 캐스팅하지 말고 `data['items']`도 처리할 것.
+- 목록 API 응답은 `{items:[...]}` 형태다. `data as List`로 캐스팅하지 말고 `data['items']`도 처리할 것.
+
+**공통**
+- 새 의존성을 함부로 추가하지 않는다. 이미 설치된 것으로 되면 그걸 쓰고, 새 라이브러리는 먼저 상의한다.
+- API 키·비밀번호를 하드코딩하지 않는다. `process.env`(`.env`)로만 읽는다.
 - 로직을 바꾸면 대응 테스트(`test/*.dart` 또는 eval 픽스처)를 함께 갱신하고 `flutter test` / `npm run eval`로 확인한다.
 - 커밋 메시지 끝에 `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 
