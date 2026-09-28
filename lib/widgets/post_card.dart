@@ -48,7 +48,7 @@ class PostCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                post.sourceText,
+                post.body,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),

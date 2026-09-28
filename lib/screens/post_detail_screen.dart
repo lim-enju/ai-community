@@ -100,7 +100,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
-                  child: Text(post.sourceText, style: const TextStyle(fontSize: 15, height: 1.5)),
+                  child: Text(post.body, style: const TextStyle(fontSize: 15, height: 1.5)),
                 ),
               ),
               if (post.sourceUrl != null) ...[

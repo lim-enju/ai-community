@@ -21,6 +21,16 @@ class Post {
     this.commentCount = 0,
   });
 
+  /// 본문에서 제목(첫 줄)을 제거한 나머지.
+  /// 제목이 없어 sourceText 첫 줄로 유도된 경우, 카드/상세에서 첫 줄이
+  /// 제목·본문으로 두 번 보이는 중복을 막는다. 단일 줄 글이면 빈 문자열.
+  String get body {
+    if (sourceText.startsWith(title)) {
+      return sourceText.substring(title.length).trimLeft();
+    }
+    return sourceText;
+  }
+
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['id'].toString(),
