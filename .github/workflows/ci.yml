@@ -1,0 +1,39 @@
+name: CI
+
+# push(main) / PR 마다 자동 실행 — eval 하네스 + Flutter 테스트로 회귀를 잡는 관문.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend-eval:
+    name: 백엔드 빌드 + eval 하네스
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      # 안전성·길이·페르소나 그레이더(픽스처 모드, $0, DB 불필요).
+      # 안전성 위반이 하나라도 있으면 exit 1 → 빌드 실패.
+      - run: npm run eval
+
+  flutter-test:
+    name: Flutter 분석 + 테스트
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
