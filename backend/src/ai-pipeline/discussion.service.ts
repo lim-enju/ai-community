@@ -10,6 +10,7 @@ import {
   getCharacterById,
 } from './characters.data';
 import { CharacterMemoryLike, MemoryService } from './memory.service';
+import { gradeSafety } from '../eval/graders';
 
 /**
  * 엔티티 가정 (실제 TypeORM 엔티티는 다른 에이전트가 정의 중이므로, 여기서는 인터페이스로만 취급):
@@ -105,7 +106,8 @@ export class DiscussionService {
           round,
           generatedComments,
         );
-        generatedComments.push(comment);
+        if (comment) generatedComments.push(comment); // 가드레일에 걸린 댓글(null)은 건너뜀
+
       }
     }
 
@@ -131,11 +133,24 @@ export class DiscussionService {
     character: CharacterDefinition,
     roundNumber: number,
     threadSoFar: CommentLike[],
-  ): Promise<CommentLike> {
+  ): Promise<CommentLike | null> {
     const memory = await this.dataPort.getMemory(character.id);
     const existingSummary = memory?.summarizedStance ?? '';
 
-    const content = await this.callClaudeForComment(post, character, threadSoFar, existingSummary);
+    let content = await this.callClaudeForComment(post, character, threadSoFar, existingSummary);
+
+    // 런타임 출력 가드레일: 안전성 위반 콘텐츠는 저장하지 않는다.
+    // 1회 재생성 후에도 위반이면 그 댓글은 건너뛴다(파이프라인은 계속 진행).
+    let safety = gradeSafety(content);
+    if (!safety.passed) {
+      this.logger.warn(`[가드레일] ${character.name} 출력 위반 → 재생성 시도 (${safety.detail})`);
+      content = await this.callClaudeForComment(post, character, threadSoFar, existingSummary);
+      safety = gradeSafety(content);
+    }
+    if (!safety.passed) {
+      this.logger.error(`[가드레일] ${character.name} 재생성도 위반 → 저장 건너뜀 (${safety.detail})`);
+      return null;
+    }
 
     const savedComment = await this.dataPort.saveComment({
       postId: post.id,
